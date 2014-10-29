@@ -1,0 +1,15 @@
+{
+  "name": "SendRequest",
+  "version": "0.0.0",
+  "description": "Http Request 请求示例",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app"
+  },
+  "keywords": [
+    "http",
+    "request"
+  ],
+  "author": "lin",
+  "license": "ISC"
+}
