@@ -28,16 +28,20 @@ var sched = later.parse.recur().every(1).second(),
     }, sched);
 
 var i = 0;
+/* 发送请求 */
 function sendRequest() {
 	var url = 'http://order.fanhuan.com/' + urls[i];
 	reg = /&ui=(\d+)/i;
+    console.log(url);
 	if(reg.test(url))
 	{
 		var userId = RegExp.$1;
 		if(userId.length != 12)
-		{}
+		{
+            userId = ProcessToTraceFlag(userId);
+            console.log(userId);
+        }
 	}
-	console.log(url);
 	i++;
 	/*
     nodegrass.get(url,function(data, status, headers){
@@ -59,6 +63,16 @@ function sendRequest() {
 	*/
 }
 
+/* 把会员标识填充为可识别的跟踪码 */
+function ProcessToTraceFlag(userId){
+    if(userId.length <= 10) {
+        var fillStr = '';
+        for (var i = userId.length; i < 10; i++) {
+            fillStr += "0";
+        }
+    }
+    return '19' + fillStr + userId;
+}
 /*
 console.log('>>正在请求京东商品地址...');
 nodegrass.get('http://item.jd.com/1256542.html',function(data, status, headers){
