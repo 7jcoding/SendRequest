@@ -8,9 +8,11 @@ var urls = [];
 /* 从IIS日志文件中提取IIS请求地址记录到 urls数组中 */
 console.log('>>开始进行IIS日志文件的请求地址分析...');
 lineReader.eachLine('iis.log', function(line) {
-	line = reg.test(line);
-	line = RegExp.$1.replace(' ','?');
-	urls.push(line);
+    if(line.indexOf('ReceiveOrder s=') >= 0) {
+        line = reg.test(line);
+        line = RegExp.$1.replace(' ', '?');
+        urls.push(line);
+    }
 	//console.log(i + "、" + line);
 	//i++;
 }).then(function () {
@@ -30,48 +32,49 @@ var sched = later.parse.recur().every(1).second(),
 var i = 0;
 /* 发送请求 */
 function sendRequest() {
-	var url = 'http://order.fanhuan.com/' + urls[i];
-	reg = /&ui=(\d+)/i;
-    console.log(url);
-	if(reg.test(url))
-	{
-		var userId = RegExp.$1;
-		if(userId.length != 12)
-		{
+    //var url = 'http://order.fanhuan.com/' + urls[i];
+    var url = 'http://localhost:20352/' + urls[i];
+    reg = /&ui=(\d+)/i;
+    //console.log(url);
+    if (reg.test(url)) {
+        var userId = RegExp.$1;
+        //如果跟踪标识不等于12位，则把会员标识填充为可识别的跟踪码
+        if (userId.length != 12) {
             userId = ProcessToTraceFlag(userId);
+            url = url.replace(RegExp.$1, userId);
+            console.log(url);
             console.log(userId);
         }
-	}
-	i++;
-	/*
-    nodegrass.get(url,function(data, status, headers){
-   		console.log();
-   		console.log(url);
-		//console.log("status：" + status);
-		//console.log("headers：" + headers);
-		console.log("response data：" + data);
-		i++;
-		if(i == urls.length)
-		{
-			t.clear();
-			console.log(">>任务已全部执行完成...");
-		}
-	},'utf8').on('error', function(e) {
-		console.log();
-		console.log(">>Http 请求失败：" + e.message);
-	});
-	*/
+    }
+
+    i++;
+
+    nodegrass.get(url, function (data, status, headers) {
+        //console.log();
+        //console.log(url);
+        //console.log("status：" + status);
+        //console.log("headers：" + headers);
+        console.log("response data：" + data);
+        if (i == urls.length) {
+            t.clear();
+            console.log(">>任务已全部执行完成...");
+        }
+    }, 'utf8').on('error', function (e) {
+        console.log();
+        console.log(">>Http 请求失败：" + e.message);
+    });
+
 }
 
 /* 把会员标识填充为可识别的跟踪码 */
 function ProcessToTraceFlag(userId){
     if(userId.length <= 10) {
         var fillStr = '';
-        for (var i = userId.length; i < 10; i++) {
+        for (var j = userId.length; j < 10; j++) {
             fillStr += "0";
         }
     }
-    return '19' + fillStr + userId;
+    return '01' + fillStr + userId;
 }
 /*
 console.log('>>正在请求京东商品地址...');
